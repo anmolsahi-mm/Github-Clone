@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build & upload to Firebase App Distribution
 
 on:
  push:
@@ -25,5 +25,6 @@ jobs:
 
       with:
         appId: ${{secrets.FIREBASE_APP_ID}}
+        token: ${{secrets.FIREBASE_TOKEN}}
         groups: testers
         file: app/build/outputs/apk/release/app-release-unsigned.apk
