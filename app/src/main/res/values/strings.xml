@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Github Clone</string>
+    <string name="github_logo">Github Logo</string>
+    <string name="sign_in_with_github">SIGN IN WITH GITHUB</string>
+    <string name="sign_in_with_github_enterprise">SIGN IN WITH GITHUB ENTERPRISE</string>
+    <string name="by_sigining_in">By signing in you accept our&#160;</string>
+    <string name="terms_of_use">Terms of use</string>
+    <string name="and">&#160;and&#160;</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="period">.</string>
 </resources>
