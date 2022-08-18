@@ -1,4 +1,4 @@
-package com.example.githubclone.presentation.loginscreen
+package com.example.githubclone.ui.presentation.loginscreen
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
@@ -23,7 +23,9 @@ import com.example.githubclone.ui.theme.EnterpriseButtonColor
 import com.example.githubclone.ui.theme.SignInButtonColor
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onSignInClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +55,7 @@ fun LoginScreen() {
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { /*TODO*/ },
+                onClick = { onSignInClick() },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.SignInButtonColor)
             ) {
                 Text(
@@ -122,11 +124,11 @@ fun LoginScreen() {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen() {}
 }
 
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun LoginScreenPreviewDark() {
-    LoginScreen()
+    LoginScreen() {}
 }
