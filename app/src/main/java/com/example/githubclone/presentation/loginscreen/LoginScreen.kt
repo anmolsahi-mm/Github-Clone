@@ -1,4 +1,4 @@
-package com.example.githubclone.ui.presentation.loginscreen
+package com.example.githubclone.presentation.loginscreen
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
@@ -6,6 +6,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +28,9 @@ import com.example.githubclone.ui.theme.SignInButtonColor
 fun LoginScreen(
     onSignInClick: () -> Unit
 ) {
+
+    val showLoader = rememberSaveable { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,14 +60,25 @@ fun LoginScreen(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { onSignInClick() },
+                onClick = {
+                    showLoader.value = true
+                    onSignInClick()
+                },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.SignInButtonColor)
             ) {
-                Text(
-                    modifier = Modifier.padding(6.dp),
-                    text = stringResource(R.string.sign_in_with_github),
-                    color = if (isSystemInDarkTheme()) Color.Black else Color.White
-                )
+                if (showLoader.value) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(4.dp).size(20.dp),
+                        strokeWidth = 3.dp,
+                        color = if (isSystemInDarkTheme()) Color.Black else Color.White
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(6.dp),
+                        text = stringResource(R.string.sign_in_with_github),
+                        color = if (isSystemInDarkTheme()) Color.Black else Color.White
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(6.dp))
