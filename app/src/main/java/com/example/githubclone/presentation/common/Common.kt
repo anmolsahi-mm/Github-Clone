@@ -1,12 +1,10 @@
 package com.example.githubclone.presentation.common
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.OAuthProvider
+import com.google.firebase.auth.*
 
 fun signIn(
     activity: Activity,
@@ -22,7 +20,7 @@ fun signIn(
         handlePendingResultTask(activity, pendingResultTask, navigateToHomeScreen)
     } else {
         // There's no pending Result. Start the Sign-in Flow
-        handleGithubSignInFlow(activity, firebaseAuth, provider, navigateToHomeScreen)
+        handleSignInFlow(activity, firebaseAuth, provider, navigateToHomeScreen)
     }
 }
 
@@ -33,14 +31,11 @@ private fun handlePendingResultTask(
 ) {
     pendingResultTask
         ?.addOnSuccessListener { authResult ->
-            val profile = authResult.additionalUserInfo?.username
-            val accessToken = authResult.credential
+            val username = authResult.additionalUserInfo?.username
+            val oAuthCredential = authResult.credential as OAuthCredential
+            val accessToken = oAuthCredential.accessToken
 
-            Toast.makeText(
-                activity,
-                "username: $profile, accessToken: $accessToken",
-                Toast.LENGTH_LONG
-            ).show()
+            Log.i("Github SignIn", "username: $username, accessToken: $accessToken")
             navigateToHomeScreen()
         }
         ?.addOnFailureListener { exception ->
@@ -52,7 +47,7 @@ private fun handlePendingResultTask(
         }
 }
 
-private fun handleGithubSignInFlow(
+private fun handleSignInFlow(
     activity: Activity,
     firebaseAuth: FirebaseAuth,
     provider: OAuthProvider.Builder,
@@ -61,14 +56,11 @@ private fun handleGithubSignInFlow(
     firebaseAuth
         .startActivityForSignInWithProvider(activity, provider.build())
         .addOnSuccessListener { authResult ->
-            val profile = authResult.additionalUserInfo?.username
-            val accessToken = authResult.credential
+            val username = authResult.additionalUserInfo?.username
+            val oAuthCredential = authResult.credential as OAuthCredential
+            val accessToken = oAuthCredential.accessToken
 
-            Toast.makeText(
-                activity,
-                "username: $profile, accessToken: $accessToken",
-                Toast.LENGTH_LONG
-            ).show()
+            Log.i("Github SignIn", "username: $username, accessToken: $accessToken")
             navigateToHomeScreen()
         }
         .addOnFailureListener { exception ->
