@@ -1,5 +1,6 @@
 package com.example.githubclone.presentation.loginscreen
 
+import android.app.Activity
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -21,14 +23,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.githubclone.R
+import com.example.githubclone.presentation.common.signIn
 import com.example.githubclone.ui.theme.EnterpriseButtonColor
 import com.example.githubclone.ui.theme.SignInButtonColor
 
 @Composable
 fun LoginScreen(
-    onSignInClick: () -> Unit
+    navigateToHomeScreen: () -> Unit,
 ) {
-
+    val activity = LocalContext.current as Activity
     val showLoader = rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -62,13 +65,15 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     showLoader.value = true
-                    onSignInClick()
+                    signIn(activity = activity, navigateToHomeScreen = navigateToHomeScreen)
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.SignInButtonColor)
             ) {
                 if (showLoader.value) {
                     CircularProgressIndicator(
-                        modifier = Modifier.padding(4.dp).size(20.dp),
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(20.dp),
                         strokeWidth = 3.dp,
                         color = if (isSystemInDarkTheme()) Color.Black else Color.White
                     )
