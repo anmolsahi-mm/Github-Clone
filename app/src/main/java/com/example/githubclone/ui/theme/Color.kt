@@ -11,11 +11,10 @@ val Teal200 = Color(0xFF03DAC5)
 
 val lightButtonColor = Color(0xFFFFFFFF)
 val darkButtonColor = Color(0xFF1f1f24)
+val backgroundColor = Color(0xFF050505)
+val lightTextColor = Color(0xFFbdbfc7)
+val linkTextColor = Color(0XFF2e8fff)
 
 val Colors.SignInButtonColor
     @Composable
     get() = if (isLight) darkButtonColor else lightButtonColor
-
-val Colors.EnterpriseButtonColor
-    @Composable
-    get() = if (isLight) lightButtonColor else darkButtonColor

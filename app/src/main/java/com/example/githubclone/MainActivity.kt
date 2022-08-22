@@ -11,15 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.githubclone.navigation.NavGraph
-import com.example.githubclone.presentation.loginscreen.LoginScreen
+import com.example.githubclone.presentation.login.LoginScreen
 import com.example.githubclone.ui.theme.GithubCloneTheme
-import com.google.firebase.auth.FirebaseUser
-
 
 class MainActivity : ComponentActivity() {
-
-    private var firebaseUser: FirebaseUser? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -32,7 +27,6 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavGraph(navController = navController)
                 }
-
             }
         }
     }
@@ -42,6 +36,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     GithubCloneTheme {
-        LoginScreen() {}
+        LoginScreen {}
     }
 }
