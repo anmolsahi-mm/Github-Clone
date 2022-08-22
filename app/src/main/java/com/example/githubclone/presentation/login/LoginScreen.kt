@@ -34,7 +34,7 @@ import com.example.githubclone.R
 import com.example.githubclone.presentation.common.getTermsAndConditionsString
 import com.example.githubclone.presentation.common.signIn
 import com.example.githubclone.ui.theme.SignInButtonColor
-import com.example.githubclone.ui.theme.backgroundColor
+import com.example.githubclone.ui.theme.darkB
 
 @Composable
 fun LoginScreen(
@@ -46,7 +46,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(if (isSystemInDarkTheme()) backgroundColor else Color.White),
+            .background(if (isSystemInDarkTheme()) darkB else Color.White),
     ) {
         Spacer(modifier = Modifier.weight(.5f))
         Icon(
