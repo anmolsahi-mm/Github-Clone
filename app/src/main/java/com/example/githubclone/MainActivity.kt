@@ -18,15 +18,10 @@ import com.google.firebase.auth.FirebaseUser
 
 class MainActivity : ComponentActivity() {
 
-
     private var firebaseUser: FirebaseUser? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-
-
         setContent {
             GithubCloneTheme {
                 // A surface container using the 'background' color from the theme
@@ -41,7 +36,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 }
 
 @Preview(showBackground = true)
