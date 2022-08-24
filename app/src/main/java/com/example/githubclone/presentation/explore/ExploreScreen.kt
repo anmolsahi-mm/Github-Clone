@@ -20,10 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.githubclone.navigation.Screen
 
 @Composable
-fun ExploreScreen() {
-    Box(modifier = Modifier.wrapContentHeight()) {
+fun ExploreScreen(navController: NavHostController) {
+    Box(
+        modifier = Modifier.wrapContentHeight()
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -40,17 +44,19 @@ fun ExploreScreen() {
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            ListCard(icon = null, title = "Trending Repositories")
-            ListCard(icon = null, title = "Awesome Lists")
-            ListCard(icon = null, title = "Scan QR")
+            ListCard(icon = null, title = "Trending Repositories"){}
+            ListCard(icon = null, title = "Awesome Lists"){}
+            ListCard(icon = null, title = "Scan QR"){
+                navController.navigate(Screen.QRScannerScreen.route)
+            }
         }
     }
 }
 
 @Composable
-fun ListCard(@DrawableRes icon: Int?, title: String) {
+fun ListCard(@DrawableRes icon: Int?, title: String, onListCardClick: () -> Unit) {
     Row(modifier = Modifier
-        .clickable { }
+        .clickable { onListCardClick() }
         .fillMaxWidth()
         .padding(8.dp)) {
         Icon(imageVector = Icons.Default.Add, contentDescription = "Card icon")
