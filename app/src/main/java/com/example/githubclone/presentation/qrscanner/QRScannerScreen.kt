@@ -1,8 +1,7 @@
 package com.example.githubclone.presentation.qrscanner
 
-import android.content.Intent
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,6 +9,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraSelector.LENS_FACING_BACK
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -32,11 +32,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.example.githubclone.utils.QrCodeAnalyzer
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import timber.log.Timber
 
 @Composable
 fun QRScannerScreen() {
-    var code by remember {
+    val code by remember {
         mutableStateOf("")
     }
 
@@ -71,40 +74,36 @@ fun QRScannerScreen() {
         if (hasCameraPermission) {
             AndroidView(
                 factory = { context ->
-                val previewView = PreviewView(context)
-                val preview = Preview.Builder().build()
-                val selector = CameraSelector.Builder()
-                    .requireLensFacing(LENS_FACING_BACK)
-                    .build()
-                preview.setSurfaceProvider(previewView.surfaceProvider)
-                val imageAnalysis = ImageAnalysis.Builder()
-                    .setTargetResolution(Size(previewView.width, previewView.height))
-                    .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                    .build()
+                    val previewView = PreviewView(context)
+                    val preview = Preview.Builder().build()
+                    val selector = CameraSelector.Builder()
+                        .requireLensFacing(LENS_FACING_BACK)
+                        .build()
+                    preview.setSurfaceProvider(previewView.surfaceProvider)
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        .setTargetResolution(Size(previewView.width, previewView.height))
+                        .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                    val barcodeScanner = BarcodeScanning.getClient()
 
-                imageAnalysis.setAnalyzer(
-                    ContextCompat.getMainExecutor(context),
-                    QrCodeAnalyzer { result ->
-                        code = result
-                        if (code.contains("github.com")) {
-                            val intent  = Intent(Intent.ACTION_VIEW, Uri.parse(code))
-                            context.startActivity(intent)
-                        }
+                    imageAnalysis.setAnalyzer(
+                        ContextCompat.getMainExecutor(context)
+                    ) { imageProxy ->
+                        processImageProxy(barcodeScanner, imageProxy)
                     }
-                )
 
-                try {
-                    cameraProviderFuture.get().bindToLifecycle(
-                        lifecycleOwner,
-                        selector,
-                        preview,
-                        imageAnalysis
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                previewView
-            },
+                    try {
+                        cameraProviderFuture.get().bindToLifecycle(
+                            lifecycleOwner,
+                            selector,
+                            preview,
+                            imageAnalysis
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    previewView
+                },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -118,4 +117,28 @@ fun QRScannerScreen() {
         )
 
     }
+}
+
+@SuppressLint("UnsafeOptInUsageError")
+fun processImageProxy(
+    barcodeScanner: BarcodeScanner,
+    imageProxy: ImageProxy,
+) {
+    val inputImage =
+        InputImage.fromMediaImage(imageProxy.image!!, imageProxy.imageInfo.rotationDegrees)
+
+    barcodeScanner.process(inputImage)
+        .addOnSuccessListener { barcodes ->
+            barcodes.forEach {
+                Timber.d(it.rawValue.toString())
+            }
+        }
+        .addOnFailureListener {
+            Timber.e(it.message.toString())
+        }.addOnCompleteListener {
+            // When the image is from CameraX analysis use case, must call image.close() on received
+            // images when finished using them. Otherwise, new images may not be received or the camera
+            // may stall.
+            imageProxy.close()
+        }
 }
