@@ -1,7 +1,10 @@
 package com.example.githubclone.presentation.qrscanner
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.Intent.ACTION_VIEW
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
@@ -14,23 +17,14 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,12 +48,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.githubclone.R
+import com.example.githubclone.utils.showToast
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -68,9 +61,6 @@ import timber.log.Timber
 
 @Composable
 fun QRScannerScreen() {
-    var code by remember {
-        mutableStateOf("Scanned Text Here")
-    }
     var isTorchEnable by remember { mutableStateOf(false) }
     var camera: Camera? = null
 
@@ -99,132 +89,119 @@ fun QRScannerScreen() {
         launcher.launch(android.Manifest.permission.CAMERA)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        if (hasCameraPermission) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(10f)
-            ) {
-                AndroidView(
-                    factory = { context ->
-                        val previewView = PreviewView(context)
-                        val preview = Preview.Builder().build()
-                        val selector = CameraSelector.Builder()
-                            .requireLensFacing(LENS_FACING_BACK)
-                            .build()
-                        preview.setSurfaceProvider(previewView.surfaceProvider)
-                        val imageAnalysis = ImageAnalysis.Builder()
-                            .setTargetResolution(android.util.Size(previewView.width,
-                                previewView.height))
-                            .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-                        val barcodeScanner = BarcodeScanning.getClient()
-                        val imageCapture = ImageCapture.Builder()
-                            .setFlashMode(ImageCapture.FLASH_MODE_ON)
-                            .build()
 
-                        camera = cameraProviderFuture.get().bindToLifecycle(
+    if (hasCameraPermission) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            AndroidView(
+                factory = { context ->
+                    val previewView = PreviewView(context)
+                    val preview = Preview.Builder().build()
+                    val selector = CameraSelector.Builder()
+                        .requireLensFacing(LENS_FACING_BACK)
+                        .build()
+                    preview.setSurfaceProvider(previewView.surfaceProvider)
+                    val imageAnalysis = ImageAnalysis.Builder()
+                        .setTargetResolution(
+                            android.util.Size(
+                                previewView.width,
+                                previewView.height
+                            )
+                        )
+                        .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                    val barcodeScanner = BarcodeScanning.getClient()
+                    val imageCapture = ImageCapture.Builder()
+                        .setFlashMode(ImageCapture.FLASH_MODE_ON)
+                        .build()
+
+                    camera = cameraProviderFuture.get().bindToLifecycle(
+                        lifecycleOwner,
+                        selector,
+                        preview,
+                        imageCapture,
+                        imageAnalysis
+                    )
+
+                    imageAnalysis.setAnalyzer(
+                        ContextCompat.getMainExecutor(context)
+                    ) { imageProxy ->
+                        processImageProxy(barcodeScanner, imageProxy) { barcodes ->
+                            barcodes.forEach {
+                                Timber.d(it.rawValue.toString())
+                                val regex =
+                                    "^(http(s)?://)?(\\w{3}\\.)?\\w+\\.com/[\\w\\d-_.]+/[\\w\\d-_.]+".toRegex()
+                                if (regex.matches(it.rawValue.toString())) {
+                                    val intent =
+                                        Intent(ACTION_VIEW, Uri.parse(it.rawValue.toString()))
+                                    context.startActivity(intent)
+                                } else {
+                                    context.showToast("Not a GitHub repository")
+                                }
+                            }
+                        }
+                    }
+
+                    try {
+                        cameraProviderFuture.get().bindToLifecycle(
                             lifecycleOwner,
                             selector,
                             preview,
-                            imageCapture,
                             imageAnalysis
                         )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    previewView
+                },
+                modifier = Modifier.fillMaxSize()
+            )
 
-                        imageAnalysis.setAnalyzer(
-                            ContextCompat.getMainExecutor(context)
-                        ) { imageProxy ->
-                            processImageProxy(barcodeScanner, imageProxy) { barcodes ->
-                                barcodes.forEach {
-                                    Timber.d(it.rawValue.toString())
-                                    code = it.rawValue.toString()
-                                }
-                            }
-                        }
-
-                        try {
-                            cameraProviderFuture.get().bindToLifecycle(
-                                lifecycleOwner,
-                                selector,
-                                preview,
-                                imageAnalysis
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        previewView
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                MyCanvas()
-
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-
-                    Icon(
-                        modifier = Modifier.padding(32.dp),
-                        painter = painterResource(id = R.drawable.ic_gallery),
-                        contentDescription = "Open Gallery",
-                        tint = Color.White
-                    )
-
-                    Icon(
-                        modifier = Modifier
-                            .clickable {
-                                isTorchEnable = !isTorchEnable
-                                if (camera?.cameraInfo?.hasFlashUnit() == true) {
-                                    camera?.cameraControl?.enableTorch(isTorchEnable)
-                                }
-                            }
-                            .padding(32.dp),
-                        painter = painterResource(id = R.drawable.ic_flash),
-                        contentDescription = "Turn On Flash",
-                        tint = Color.White
-                    )
-
-                }
+            MyCanvas() { width, height ->
 
             }
-        }
-        Text(
-            text = code,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(32.dp)
-        )
 
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+
+                Icon(
+                    modifier = Modifier.padding(32.dp),
+                    painter = painterResource(id = R.drawable.ic_gallery),
+                    contentDescription = "Open Gallery",
+                    tint = Color.White
+                )
+
+                Icon(
+                    modifier = Modifier
+                        .clickable {
+                            isTorchEnable = !isTorchEnable
+                            if (camera?.cameraInfo?.hasFlashUnit() == true) {
+                                camera?.cameraControl?.enableTorch(isTorchEnable)
+                            }
+                        }
+                        .padding(32.dp),
+                    painter = painterResource(id = R.drawable.ic_flash),
+                    contentDescription = "Turn On Flash",
+                    tint = Color.White
+                )
+
+            }
+
+        }
     }
+
 }
 
 @Composable
-fun MyCanvas() {
+fun MyCanvas(imageBounds: (width: Float, height: Float) -> Unit) {
     val configuration = LocalConfiguration.current
-    val infiniteTransition = rememberInfiniteTransition()
-
-    val color by infiniteTransition.animateColor(
-        initialValue = Color.Transparent,
-        targetValue = Color.Green,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1000,
-                easing = FastOutSlowInEasing
-            ),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
     Canvas(modifier = Modifier.fillMaxSize()) {
         val rectPath = Path().let {
             it.addRoundRect(
@@ -272,6 +249,7 @@ fun MyCanvas() {
             rectPath.getBounds().bottomCenter.y + 28.dp.toPx(),
             textPaint
         )
+        imageBounds(rectPath.getBounds().width, rectPath.getBounds().height)
     }
 }
 
