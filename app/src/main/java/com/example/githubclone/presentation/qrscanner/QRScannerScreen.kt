@@ -2,7 +2,6 @@ package com.example.githubclone.presentation.qrscanner
 
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
@@ -15,7 +14,13 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +29,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +39,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -105,7 +118,8 @@ fun QRScannerScreen() {
                             .build()
                         preview.setSurfaceProvider(previewView.surfaceProvider)
                         val imageAnalysis = ImageAnalysis.Builder()
-                            .setTargetResolution(Size(previewView.width, previewView.height))
+                            .setTargetResolution(android.util.Size(previewView.width,
+                                previewView.height))
                             .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
                             .build()
                         val barcodeScanner = BarcodeScanning.getClient()
@@ -147,22 +161,8 @@ fun QRScannerScreen() {
                     modifier = Modifier.fillMaxSize()
                 )
 
-                Surface(
-                    border = BorderStroke(
-                        1.dp,
-                        color = Color.Green
-                    ),
-                    color = Color.Transparent,
-                    modifier = Modifier
-                        .size(
-                            if (LocalConfiguration.current.screenWidthDp < LocalConfiguration.current.screenHeightDp) {
-                                LocalConfiguration.current.screenWidthDp.times(0.6).dp
-                            } else {
-                                LocalConfiguration.current.screenHeightDp.times(0.6).dp
-                            }
-                        )
-                        .align(Alignment.Center)
-                ) {}
+                MyCanvas()
+
 
                 Row(
                     modifier = Modifier
@@ -206,6 +206,72 @@ fun QRScannerScreen() {
                 .padding(32.dp)
         )
 
+    }
+}
+
+@Composable
+fun MyCanvas() {
+    val configuration = LocalConfiguration.current
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val color by infiniteTransition.animateColor(
+        initialValue = Color.Transparent,
+        targetValue = Color.Green,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1000,
+                easing = FastOutSlowInEasing
+            ),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val rectPath = Path().let {
+            it.addRoundRect(
+                roundRect = RoundRect(
+                    rect = Rect(
+                        center = Offset(x = size.center.x, y = size.center.y),
+                        radius =
+                        if (configuration.screenWidthDp < configuration.screenHeightDp) {
+                            configuration.screenWidthDp.times(1).toFloat()
+                        } else {
+                            configuration.screenHeightDp.times(1).toFloat()
+                        }
+                    ),
+                    cornerRadius = CornerRadius(40f)
+                )
+            )
+            it.fillType = PathFillType.EvenOdd
+            it.close()
+            it
+        }
+
+        val outerPath = Path().let {
+            it.moveTo(0f, 0f)
+            it.lineTo(0f, this.size.height)
+            it.lineTo(this.size.width, this.size.height)
+            it.lineTo(this.size.width, 0f)
+            it.fillType = PathFillType.EvenOdd
+            it.addPath(rectPath)
+            it.close()
+            it
+        }
+
+        val textPaint = android.graphics.Paint().apply {
+            this.color = Color.White.toArgb()
+            this.textSize = 12.dp.toPx()
+            this.textAlign = android.graphics.Paint.Align.CENTER
+        }
+
+        drawPath(path = outerPath, color = Color(0xB3000000))
+        drawPath(path = rectPath, color = Color.Transparent)
+        drawPath(path = rectPath, color = Color.Green, style = Stroke(width = 2.dp.toPx()))
+        drawContext.canvas.nativeCanvas.drawText(
+            "Scan a GitHub Repository QR code",
+            rectPath.getBounds().bottomCenter.x,
+            rectPath.getBounds().bottomCenter.y + 28.dp.toPx(),
+            textPaint
+        )
     }
 }
 
