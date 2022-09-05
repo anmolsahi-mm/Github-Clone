@@ -14,6 +14,7 @@ val darkButtonColor = Color(0xFF1f1f24)
 val darkB = Color(0xFF050505)
 val lightTextColor = Color(0xFFbdbfc7)
 val linkTextColor = Color(0XFF2e8fff)
+val transparentBlackColor = Color(0xB3000000)
 
 val Colors.SignInButtonColor
     @Composable

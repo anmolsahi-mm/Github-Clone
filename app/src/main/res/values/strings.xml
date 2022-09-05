@@ -12,4 +12,6 @@
     <string name="notifications">Notifications</string>
     <string name="explore">Explore</string>
     <string name="profile">Profile</string>
+    <string name="open_gallery">Open Gallery</string>
+    <string name="turn_on_flash">Turn On Flash</string>
 </resources>
