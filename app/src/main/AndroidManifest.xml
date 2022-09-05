@@ -3,10 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.githubclone">
 
-    <uses-sdk tools:overrideLibrary="
-      androidx.camera.camera2, androidx.camera.core,
-      androidx.camera.view, androidx.camera.lifecycle" />
-
     <uses-feature android:name="android.hardware.camera" />
 
     <uses-permission android:name="android.permission.INTERNET" />

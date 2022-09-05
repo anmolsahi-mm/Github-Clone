@@ -12,7 +12,6 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraSelector.LENS_FACING_BACK
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -100,10 +99,6 @@ fun QRScannerScreen() {
 
                     val barcodeScanner = BarcodeScanning.getClient()
 
-                    val imageCapture = ImageCapture.Builder()
-                        .setFlashMode(ImageCapture.FLASH_MODE_ON)
-                        .build()
-
                     imageAnalysis.setAnalyzer(
                         ContextCompat.getMainExecutor(context)
                     ) { imageProxy ->
@@ -125,7 +120,6 @@ fun QRScannerScreen() {
                             lifecycleOwner,
                             selector,
                             preview,
-                            imageCapture,
                             imageAnalysis
                         )
                     } catch (e: Exception) {
