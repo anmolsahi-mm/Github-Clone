@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,16 +42,17 @@ import androidx.core.content.ContextCompat
 import com.example.githubclone.R
 import com.example.githubclone.utils.Constants.GITHUB_REPO_REGEX
 import com.google.mlkit.vision.barcode.BarcodeScanning
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
 @Composable
 fun QRScannerScreen() {
-
     var isTorchEnable by remember { mutableStateOf(false) }
     var camera: Camera? = null
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
 
     val cameraProviderFuture = remember {
         ProcessCameraProvider.getInstance(context)
@@ -102,15 +104,17 @@ fun QRScannerScreen() {
                     imageAnalysis.setAnalyzer(
                         ContextCompat.getMainExecutor(context)
                     ) { imageProxy ->
-                        processImageProxy(barcodeScanner, imageProxy) { barcodes ->
-                            barcodes.forEach {
-                                Timber.d(it.rawValue.toString())
-                                val regex =
-                                    GITHUB_REPO_REGEX.toRegex()
-                                if (regex.matches(it.rawValue.toString())) {
-                                    val intent =
-                                        Intent(ACTION_VIEW, Uri.parse(it.rawValue.toString()))
-                                    context.startActivity(intent)
+                        coroutineScope.launch {
+                            processImageProxy(barcodeScanner, imageProxy) { barcodes ->
+                                barcodes.forEach {
+                                    Timber.d(it.rawValue.toString())
+                                    val regex =
+                                        GITHUB_REPO_REGEX.toRegex()
+                                    if (regex.matches(it.rawValue.toString())) {
+                                        val intent =
+                                            Intent(ACTION_VIEW, Uri.parse(it.rawValue.toString()))
+                                        context.startActivity(intent)
+                                    }
                                 }
                             }
                         }
