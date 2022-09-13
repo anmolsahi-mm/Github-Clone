@@ -17,15 +17,29 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.githubclone.ui.theme.transparentBlackColor
+import kotlin.math.min
 
 @Composable
-fun QRCodeBackground() {
+fun QRCodeBackground(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = transparentBlackColor,
+    scannerColor: Color = Color.Transparent,
+    boundaryColor: Color = Color.Green,
+    boundaryWidth: Dp = 2.dp,
+    cornerRadius: Float = 40f,
+    text: String = "Scan a GitHub Repository QR code",
+    textSize: TextUnit = 12.sp,
+    textPadding: Dp = 28.dp
+) {
 
     val configuration = LocalConfiguration.current
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    Canvas(modifier = modifier.fillMaxSize()) {
 
         val canvasHeight = this.size.height
         val canvasWidth = this.size.width
@@ -33,7 +47,7 @@ fun QRCodeBackground() {
 
         val textPaint = Paint().apply {
             this.color = Color.White.toArgb()
-            this.textSize = 12.dp.toPx()
+            this.textSize = textSize.toPx()
             this.textAlign = Paint.Align.CENTER
         }
 
@@ -42,14 +56,9 @@ fun QRCodeBackground() {
                 roundRect = RoundRect(
                     rect = Rect(
                         center = Offset(x = canvasCenter.x, y = canvasCenter.y),
-                        radius =
-                        if (configuration.screenWidthDp < configuration.screenHeightDp) {
-                            configuration.screenWidthDp.times(1).toFloat()
-                        } else {
-                            configuration.screenHeightDp.times(1).toFloat()
-                        }
+                        radius = min(configuration.screenWidthDp, configuration.screenHeightDp).toFloat()
                     ),
-                    cornerRadius = CornerRadius(40f)
+                    cornerRadius = CornerRadius(cornerRadius)
                 )
             )
             fillType = PathFillType.EvenOdd
@@ -66,14 +75,14 @@ fun QRCodeBackground() {
             close()
         }
 
-        drawPath(path = backgroundPath, color = transparentBlackColor)
-        drawPath(path = scannerPath, color = Color.Transparent)
-        drawPath(path = scannerPath, color = Color.Green, style = Stroke(width = 2.dp.toPx()))
+        drawPath(path = backgroundPath, color = backgroundColor)
+        drawPath(path = scannerPath, color = scannerColor)
+        drawPath(path = scannerPath, color = boundaryColor, style = Stroke(width = boundaryWidth.toPx()))
 
         drawContext.canvas.nativeCanvas.drawText(
-            "Scan a GitHub Repository QR code",
+            text,
             scannerPath.getBounds().bottomCenter.x,
-            scannerPath.getBounds().bottomCenter.y + 28.dp.toPx(),
+            scannerPath.getBounds().bottomCenter.y + textPadding.toPx(),
             textPaint
         )
     }

@@ -15,10 +15,16 @@ suspend fun processImageProxy(
     onSuccess: (barcodes: List<Barcode>) -> Unit,
 ) {
     val inputImage =
-        InputImage.fromMediaImage(imageProxy.image!!, imageProxy.imageInfo.rotationDegrees)
+        imageProxy.image?.let {
+            InputImage.fromMediaImage(it, imageProxy.imageInfo.rotationDegrees)
+        }
 
     try {
-        onSuccess(barcodeScanner.process(inputImage).await())
+        inputImage?.let { image ->
+            barcodeScanner.process(image).await()
+        }?.let { barcodes ->
+            onSuccess(barcodes)
+        }
     } catch (exception: Exception) {
         Timber.e(exception.message.toString())
     } finally {

@@ -6,13 +6,14 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.githubclone.navigation.bottombarnavigation.BottomNavGraph
 import com.example.githubclone.navigation.bottombarnavigation.BottomScreen
+import com.example.githubclone.utils.getCurrentRoute
 
 @Composable
 fun MainScreen() {
@@ -26,15 +27,16 @@ fun MainScreen() {
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
-    val navItems = listOf(
-        BottomScreen.Home,
-        BottomScreen.Notifications,
-        BottomScreen.Explore,
-        BottomScreen.Profile
-    )
+    val navItems = remember {
+        mutableStateListOf(
+            BottomScreen.Home,
+            BottomScreen.Notifications,
+            BottomScreen.Explore,
+            BottomScreen.Profile
+        )
+    }
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentRoute = getCurrentRoute(navController = navController)
 
     BottomNavigation {
         navItems.forEach { navItem ->

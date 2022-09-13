@@ -73,7 +73,7 @@ fun QRScannerScreen() {
                 hasCameraPermission = granted
             })
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = Unit) {
         launcher.launch(android.Manifest.permission.CAMERA)
     }
 
