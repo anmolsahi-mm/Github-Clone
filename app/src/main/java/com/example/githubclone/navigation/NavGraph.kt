@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.githubclone.presentation.home.HomeScreen
 import com.example.githubclone.presentation.login.LoginScreen
+import com.example.githubclone.presentation.main.MainScreen
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -13,22 +13,19 @@ fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination =
-        if (FirebaseAuth.getInstance().currentUser != null) Screen.Home.route
-        else Screen.Login.route
+        FirebaseAuth.getInstance().currentUser?.let { Screen.Main.route } ?: Screen.Login.route
     ) {
         composable(route = Screen.Login.route) {
             LoginScreen {
-                navController.navigate(route = Screen.Home.route) {
+                navController.navigate(route = Screen.Main.route) {
                     popUpTo(Screen.Login.route) {
                         inclusive = true
-
                     }
                 }
             }
         }
-
-        composable(route = Screen.Home.route) {
-            HomeScreen()
+        composable(route = Screen.Main.route) {
+            MainScreen()
         }
     }
 
