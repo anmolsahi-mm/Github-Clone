@@ -15,8 +15,8 @@ suspend fun processImageProxy(
     onSuccess: (barcodes: List<Barcode>) -> Unit,
 ) {
     val inputImage =
-        imageProxy.image?.let {
-            InputImage.fromMediaImage(it, imageProxy.imageInfo.rotationDegrees)
+        imageProxy.image?.let { image ->
+            InputImage.fromMediaImage(image, imageProxy.imageInfo.rotationDegrees)
         }
 
     try {
